@@ -1,0 +1,11 @@
+.generator-section {
+  height: 100vh;
+}
+
+.generator-container {
+  width: 90vw;
+}
+
+.input-hint {
+  font-size: 0.9rem;
+}

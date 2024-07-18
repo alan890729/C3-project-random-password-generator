@@ -1,1 +1,78 @@
-<h1>hi, just a test h1</h1>
+<section class="bg-dark d-flex align-items-center generator-section">
+  <div class="bg-light mx-auto generator-container">
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title fs-5">Random Password Generator</div>
+        <hr>
+
+        <form action="/" id="generator-form">
+
+          <div class="row mb-3">
+            <label for="password-length" class="col-sm-4 col-form-label">Password Length</label>
+            <div class="col-sm-8">
+              <input type="number" class="form-control" id="password-length">
+              <p class="text-secondary input-hint">Length is available between 4 ~ 16</p>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <p class="col-sm-4 col-form-label">Include Lowercase Characters</label>
+            <div class="col-sm-8 d-flex align-items-center">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="include-lowercase-characters">
+                <label class="form-check-label" for="include-lowercase-characters">
+                  (e.g. abcdefg)
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <p class="col-sm-4 col-form-label">Include Uppercase Characters</label>
+            <div class="col-sm-8 d-flex align-items-center">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="include-uppercase-characters">
+                <label class="form-check-label" for="include-uppercase-characters">
+                  (e.g. ABCDEFG)
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <p class="col-sm-4 col-form-label">Include Numbers</label>
+            <div class="col-sm-8 d-flex align-items-center">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="include-numbers">
+                <label class="form-check-label" for="include-numbers">
+                  (e.g. 123456)
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <p class="col-sm-4 col-form-label">Include Symbols</label>
+            <div class="col-sm-8 d-flex align-items-center">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="include-symbols">
+                <label class="form-check-label" for="include-symbols">
+                  (e.g. @#$%)
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="exclude-characters" class="col-sm-4 col-form-label">Exclude Characters</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" id="exclude-characters">
+              <p class="text-secondary input-hint">These characters will not appear in the password</p>
+            </div>
+          </div>
+          <div class="row d-flex mb-3" id="generated-password">
+            {{!-- <p class="mb-0 col-12">You're password is: <span id="generated-password"></span></p> --}}
+          </div>
+          <button type="submit" class="btn btn-success">Generate Password</button>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+</section>
