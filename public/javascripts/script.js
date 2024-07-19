@@ -8,11 +8,11 @@ const SETTINGS_STATUS = {
 }
 
 const model = {
-  codeChars: '',
+
   lowercases: 'abcdefghijklmnopqrstuvwxyz',
   uppercases: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   numbers: '1234567890',
-  symbols: '`~!@#$%^&*()-_=+[{]}|;:\'\",<.>/?',
+  symbols: '`~!@#$%^&*()-_=+[{]}|;:\'\",.>/?',
 
   generateSettings(eventTarget) {
     return {
@@ -25,8 +25,42 @@ const model = {
     }
   },
 
-  generatePassword() {
+  getCharacterSets(settings) {
+    let characterSets = []
 
+    if (settings.hasLowercase) {
+      characterSets.push(this.lowercases)
+    }
+    if (settings.hasUppercase) {
+      characterSets.push(this.uppercases)
+    }
+    if (settings.hasNumbers) {
+      characterSets.push(this.numbers)
+    } if (settings.hasSymbols) {
+      characterSets.push(this.symbols)
+    }
+
+    return characterSets
+  },
+
+  generateRawPassword(settings, characterSets) {
+    let rawPassword = []
+    const passwordLength = settings.passwordLength
+
+    characterSets.forEach(charSet => {
+      const randomIndex = Math.floor(Math.random() * charSet.length)
+      rawPassword.push(charSet[randomIndex])
+    })
+
+    const remainPasswordLength = passwordLength - rawPassword.length
+    for (let i = 0; i < remainPasswordLength; i++) {
+      const randomCharSet = Math.floor(Math.random() * characterSets.length)
+      const selectedCharSet = characterSets[randomCharSet]
+      const randomIndex = Math.floor(Math.random() * selectedCharSet.length)
+      rawPassword.push(selectedCharSet[randomIndex])
+    }
+
+    return rawPassword
   },
 
 
@@ -72,20 +106,17 @@ const controller = {
   },
 }
 
-// const utility = {
-//   shuffleCodeChars(codeChars) {
-//     let passwordArr = codeChars.split('')
-//     let password = ''
+const utility = {
+  shuffle(rawPassword) {
+    for (let i = rawPassword.length - 1; i > 0; i--) {
+      let randomIndex = Math.floor(Math.random() * (i + 1))
+        ;[rawPassword[i], rawPassword[randomIndex]] = [rawPassword[randomIndex], rawPassword[i]]
+    }
 
-//     for (let i = passwordArr.length - 1; i > 0; i--) {
-//       let randomIndex = Math.floor(Math.random() * (i + 1))
-//         ;[passwordArr[i], passwordArr[randomIndex]] = [passwordArr[randomIndex], passwordArr[i]]
-//     }
-
-//     password = passwordArr.join('')
-//     return password
-//   }
-// }
+    let password = rawPassword.join('')
+    return password
+  }
+}
 
 generatorForm.addEventListener('submit', function onGeneratorFormSubmit(event) {
   event.preventDefault()
@@ -102,8 +133,14 @@ generatorForm.addEventListener('submit', function onGeneratorFormSubmit(event) {
       view.renderErrorMessage(controller.settingsStatus)
       return
     case SETTINGS_STATUS.verified:
-      view.renderGeneratedPassword('generated password')
+      // view.renderGeneratedPassword('generated password')
+      const rawPassword = model.generateRawPassword(settings, model.getCharacterSets(settings))
+      console.log('rawPassword:', rawPassword)
+      const password = utility.shuffle(rawPassword)
+      console.log(password)
+      view.renderGeneratedPassword(password)
       return
   }
 })
+
 
