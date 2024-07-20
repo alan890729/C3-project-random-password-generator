@@ -9,6 +9,11 @@ const SETTING_STATUS = {
   verified: 'setting verified, match condition.'
 }
 
+const lowercases = 'abcdefghijklmnopqrstuvwxyz'
+const uppercases = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const numbers = '1234567890'
+const symbols = '`~!@#$%^&*()-_=+[{]}|;:\'\",.>/?'
+
 function getSettingStatus(settings) {
   if (
     !settings.passwordLength ||
@@ -38,7 +43,53 @@ function errorMessage(settingStatus) {
   return errorMessage
 }
 
+function getCharacterSets(settings) {
+  let characterSets = []
 
+  if (settings.hasLowercase) {
+    characterSets.push(lowercases)
+  }
+  if (settings.hasUppercase) {
+    characterSets.push(uppercases)
+  }
+  if (settings.hasNumbers) {
+    characterSets.push(numbers)
+  }
+  if (settings.hasSymbols) {
+    characterSets.push(symbols)
+  }
+
+  return characterSets
+}
+
+function generateRawPassword(settings, characterSets) {
+  let rawPasswordArr = []
+  const passwordLength = settings.passwordLength
+
+  characterSets.forEach(charSet => {
+    const randomIndex = Math.floor(Math.random() * charSet.length)
+    rawPasswordArr.push(charSet[randomIndex])
+  })
+
+  const remainPasswordLength = passwordLength - rawPasswordArr.length
+  for (let i = 0; i < remainPasswordLength; i++) {
+    const randomCharSet = Math.floor(Math.random() * characterSets.length)
+    const charSet = characterSets[randomCharSet]
+    const randomIndex = Math.floor(Math.random() * charSet.length)
+    rawPasswordArr.push(charSet[randomIndex])
+  }
+
+  return rawPasswordArr
+}
+
+function getPassword(rawPasswordArr) {
+  for (let i = rawPasswordArr.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1))
+      ;[rawPasswordArr[i], rawPasswordArr[randomIndex]] = [rawPasswordArr[randomIndex], rawPasswordArr[i]]
+  }
+  const password = rawPasswordArr.join('')
+  return password
+}
 
 app.use(express.static('./public'))
 app.engine('.hbs', engine({ extname: '.hbs' }))
@@ -52,24 +103,22 @@ app.get('/', (req, res) => {
 app.get('/generated', (req, res) => {
   let msg = ''
   const passwordSettings = req.query
-  console.log(passwordSettings)
-
   const settingStatus = getSettingStatus(passwordSettings)
-  console.log(settingStatus)
-
   const errMsg = errorMessage(settingStatus)
+
   if (errMsg) {
     msg = errMsg
+    res.render('generated', { passwordSettings, message: msg })
+  } else {
+    const characterSets = getCharacterSets(passwordSettings)
+    const rawPasswordArr = generateRawPassword(passwordSettings, characterSets)
+    const password = getPassword(rawPasswordArr)
+
+    msg = `You're password is: ${password}`
+
+    res.render('generated', { passwordSettings, message: msg })
   }
 
-  
-
-
-
-
-  
-
-  res.render('generated', { passwordSettings, message: msg })
 })
 
 app.listen(port, () => {
