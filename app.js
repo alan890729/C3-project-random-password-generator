@@ -62,19 +62,39 @@ function getCharacterSets(settings) {
   return characterSets
 }
 
-function generateRawPassword(settings, characterSets) {
+function filteredCharacterSets(settings, characterSets) {
+  const excludeCharacters = settings.excludeCharacters.split('')
+  let filteredCharacterSets = []
+
+  characterSets.forEach(charSet => {
+    const filteredCharSet = charSet.split('').filter(char => {
+      if (excludeCharacters.includes(char)) {
+        return false
+      }
+      return true
+    }).join('')
+
+    if (filteredCharSet) {
+      filteredCharacterSets.push(filteredCharSet)
+    }
+  })
+
+  return filteredCharacterSets
+}
+
+function generateRawPassword(settings, filteredCharacterSets) {
   let rawPasswordArr = []
   const passwordLength = settings.passwordLength
 
-  characterSets.forEach(charSet => {
+  filteredCharacterSets.forEach(charSet => {
     const randomIndex = Math.floor(Math.random() * charSet.length)
     rawPasswordArr.push(charSet[randomIndex])
   })
 
   const remainPasswordLength = passwordLength - rawPasswordArr.length
   for (let i = 0; i < remainPasswordLength; i++) {
-    const randomCharSet = Math.floor(Math.random() * characterSets.length)
-    const charSet = characterSets[randomCharSet]
+    const randomCharSet = Math.floor(Math.random() * filteredCharacterSets.length)
+    const charSet = filteredCharacterSets[randomCharSet]
     const randomIndex = Math.floor(Math.random() * charSet.length)
     rawPasswordArr.push(charSet[randomIndex])
   }
@@ -110,9 +130,14 @@ app.get('/generated', (req, res) => {
     msg = errMsg
     res.render('generated', { passwordSettings, message: msg })
   } else {
-    const characterSets = getCharacterSets(passwordSettings)
-    const rawPasswordArr = generateRawPassword(passwordSettings, characterSets)
+    const charSets = getCharacterSets(passwordSettings)
+    const filteredCharSets = filteredCharacterSets(passwordSettings, charSets)
+    const rawPasswordArr = generateRawPassword(passwordSettings, filteredCharSets)
     const password = getPassword(rawPasswordArr)
+    console.log(charSets)
+    console.log(filteredCharSets)
+    console.log(rawPasswordArr)
+    console.log(password)
 
     msg = `You're password is: ${password}`
 
