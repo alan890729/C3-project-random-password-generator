@@ -2,7 +2,10 @@
   <div class="bg-light mx-auto generator-container">
     <div class="card">
       <div class="card-body">
-        <div class="card-title fs-5">Random Password Generator</div>
+        <div class="card-title fs-5">
+          Random Password Generator
+          <i class="fa-solid fa-key"></i>
+        </div>
         <hr>
 
         <form action="/generated" id="generator-form">
@@ -64,9 +67,6 @@
               <input type="text" class="form-control" id="exclude-characters" name="excludeCharacters">
               <p class="text-secondary input-hint">These characters will not appear in the password</p>
             </div>
-          </div>
-          <div class="row d-flex mb-3" id="generated-password">
-            {{!-- message will appear at page 'generated.hbs' --}}
           </div>
           <button type="submit" class="btn btn-success">Generate Password</button>
 

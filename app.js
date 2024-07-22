@@ -131,13 +131,14 @@ app.get('/', (req, res) => {
 })
 
 app.get('/generated', (req, res) => {
-  let msg = ''
+  const msg = {}
   const passwordSettings = req.query
   const settingStatus = getSettingStatus(passwordSettings)
   const errMsg = errorMessage(settingStatus)
 
   if (errMsg) {
-    msg = errMsg
+    msg.isErrorMsg = true
+    msg.content = errMsg
     res.render('generated', { passwordSettings, message: msg })
   } else {
     const charSets = getCharacterSets(passwordSettings)
@@ -145,7 +146,8 @@ app.get('/generated', (req, res) => {
     const rawPasswordArr = generateRawPassword(passwordSettings, filteredCharSets)
     const password = getPassword(rawPasswordArr)
 
-    msg = `You're password is: ${password}`
+    msg.isErrorMsg = false
+    msg.content = password
 
     res.render('generated', { passwordSettings, message: msg })
   }
