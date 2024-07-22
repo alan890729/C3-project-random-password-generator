@@ -6,7 +6,8 @@ const port = 3000
 const SETTING_STATUS = {
   wrongPasswordLength: 'no/wrong password length entered',
   noCharacterSet: 'no character set selected',
-  verified: 'setting verified, match condition.'
+  verified: 'setting verified, match condition.',
+  excludeCharactersConflict: 'excludeCharactersConflict'
 }
 
 const lowercases = 'abcdefghijklmnopqrstuvwxyz'
@@ -23,6 +24,12 @@ function getSettingStatus(settings) {
     return SETTING_STATUS.wrongPasswordLength
   } else if (!Object.values(settings).some(value => value === 'selected')) {
     return SETTING_STATUS.noCharacterSet
+  } else if (
+    getCharacterSets(settings).some(charSet => 
+      charSet.split('').every(char => settings.excludeCharacters.split('').includes(char))
+    )
+  ) {
+    return SETTING_STATUS.excludeCharactersConflict
   } else {
     return SETTING_STATUS.verified
   }
@@ -37,6 +44,9 @@ function errorMessage(settingStatus) {
       break
     case SETTING_STATUS.noCharacterSet:
       errorMessage = 'You should select at least one character set.'
+      break
+    case SETTING_STATUS.excludeCharactersConflict:
+      errorMessage = 'Exclude characters shouldn\'t includes all characters in any of the selected character set.'
       break
   }
 
@@ -134,10 +144,6 @@ app.get('/generated', (req, res) => {
     const filteredCharSets = filteredCharacterSets(passwordSettings, charSets)
     const rawPasswordArr = generateRawPassword(passwordSettings, filteredCharSets)
     const password = getPassword(rawPasswordArr)
-    console.log(charSets)
-    console.log(filteredCharSets)
-    console.log(rawPasswordArr)
-    console.log(password)
 
     msg = `You're password is: ${password}`
 

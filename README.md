@@ -2,4 +2,5 @@
 - 有測試過可以新增一個js file: /javascripts/script.js，在裡面用動態渲染的方式顯示產生的密碼。所以動態渲染是可行的。所以現在我是有想到兩個版本的最終結果，還沒確認兩者的可行性，1是用動態渲染的方式產生密碼，2是用res.query紀錄user選什麼樣的密碼產生設定，然後弄一個route去顯示產生的密碼。
 - 我是打算兩個版本都做做看
 ## 版本2
-- 問題1：如果選擇了一或多個字元集characterSets，但是在exclude characters又把這些字元集的所有字元列出來（雖然正常操作不會有人這樣），那filteredCharSets就會是空陣列，進而導致function 'generateRawPassword' 的執行錯誤。預計會在下一次的commit修正這個問題。有大概想好方向是新增一個SETTING_STATUS的屬性是excludeCharacterConflict，如果發現「使用者輸入的exclude characters把選中的character sets中，至少有一個character set的所有字元包含在內」，那就要讓function 'getSettingStatus' return的值是excludeCharacterConflict，然後讓function 'errorMessage' return的值是相對應的錯誤訊息，最終使畫面顯示出提示使用者的錯誤訊息，而不是報錯。
+- 問題1：如果選擇了一或多個字元集characterSets，但是在exclude characters又把這些字元集的所有字元列出來（雖然正常操作不會有人這樣），那filteredCharSets就會是空陣列，進而導致function 'generateRawPassword' 的執行錯誤。預計會在下一次的commit修正這個問題。有大概想好方向是新增一個SETTING_STATUS的屬性是excludeCharacterConflict，如果發現「使用者輸入的exclude characters把選中的character sets中，至少有一個character set的所有字元包含在內」，那就要讓function 'getSettingStatus' return的值是excludeCharacterConflict，然後讓function 'errorMessage' return的值是相對應的錯誤訊息，最終使畫面顯示出提示使用者的錯誤訊息，而不是報錯或顯示密碼。
+- 問題1已解決。如果要測試excludeCharacterConflict顯示出的提示訊息，可以「輸入正確的密碼長度。選一至多個character sets。在exclude characters輸入一些字元，這些字元要包含選中的其中一個character set的所有字元。例如：選所有的字元集，密碼長度也輸入正確，然後在exclude characters輸入1ab635F8c20#ZK947fg，它包含了所有的數字字元0123456789，所以會顯示提示訊息。」
