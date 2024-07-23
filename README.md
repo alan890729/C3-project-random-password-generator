@@ -61,7 +61,13 @@
     npm install
     ```
 
-4. 是否已經安裝nodemon
+4. 因為這份作業我有做兩個版本，而此版本是用學期C3教的方法（express.js、app.get()分配路由、handlebars樣板引擎功能等等）做出來的，所以要看這個版本，要把分支切換到server-render-version：
+
+    ```
+    git checkout server-render-version
+    ```
+
+5. 檢查是否已經安裝nodemon
    
     - 已有nodemon，直接輸入以下指令啟動專案
    
@@ -75,15 +81,10 @@
       npm install -g nodemon
       ```
   
-      接著再回到 **C3M3-project-restaurants-list** 資料夾內，輸入：
+      接著再回到 **C3M3-project-random-password-generator** 資料夾內，輸入：
       ```
       npm run dev
       ```
-5. 因為這份作業我有做兩個版本，而此版本是用學期C3教的方法（express.js、app.get()分配路由、handlebars樣板引擎功能等等）做出來的，所以要看這個版本，要把分支切換到server-render-version：
-
-    ```
-    git checkout server-render-version
-    ```
 ## Authors
 
   - [**Alpha Camp**](https://tw.alphacamp.co/) - provide this assignment.
