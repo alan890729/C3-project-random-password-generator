@@ -15,18 +15,20 @@ const uppercases = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const numbers = '1234567890'
 const symbols = '`~!@#$%^&*()-_=+[{]}|;:\'\",.>/?'
 
-function getSettingStatus(settings) {
+function getSettingStatus(settings, characterSets) {
+  const excludeChars = settings.excludeCharacters.split('')
+
   if (
     !settings.passwordLength ||
     +settings.passwordLength < 4 ||
     +settings.passwordLength > 16
   ) {
     return SETTING_STATUS.wrongPasswordLength
-  } else if (!Object.values(settings).some(value => value === 'selected')) {
+  } else if (!characterSets.length) {
     return SETTING_STATUS.noCharacterSet
   } else if (
-    getCharacterSets(settings).some(charSet => 
-      charSet.split('').every(char => settings.excludeCharacters.split('').includes(char))
+    characterSets.some(charSet =>
+      charSet.split('').every(char => excludeChars.includes(char))
     )
   ) {
     return SETTING_STATUS.excludeCharactersConflict
@@ -133,7 +135,8 @@ app.get('/', (req, res) => {
 app.get('/generated', (req, res) => {
   const msg = {}
   const passwordSettings = req.query
-  const settingStatus = getSettingStatus(passwordSettings)
+  const charSets = getCharacterSets(passwordSettings)
+  const settingStatus = getSettingStatus(passwordSettings, charSets)
   const errMsg = errorMessage(settingStatus)
 
   if (errMsg) {
@@ -141,7 +144,6 @@ app.get('/generated', (req, res) => {
     msg.content = errMsg
     res.render('generated', { passwordSettings, message: msg })
   } else {
-    const charSets = getCharacterSets(passwordSettings)
     const filteredCharSets = filteredCharacterSets(passwordSettings, charSets)
     const rawPasswordArr = generateRawPassword(passwordSettings, filteredCharSets)
     const password = getPassword(rawPasswordArr)
