@@ -4,7 +4,8 @@ const generatedPassword = document.querySelector('#generated-password')
 const SETTINGS_STATUS = {
   lengthError: 'wrong length or no length entered',
   zeroCharacterSetSelected: '0 character set selected',
-  verified: 'verified'
+  verified: 'verified',
+  excludeCharactersConflict: 'excludeCharactersConflict'
 }
 
 const model = {
@@ -43,19 +44,29 @@ const model = {
     return characterSets
   },
 
-  generateRawPassword(settings, characterSets) {
+  getFilteredCharacterSets(settings, characterSets) {
+    const excludeChars = settings.excludeChars.split('')
+
+    let filteredCharSets = characterSets.map(charSet => 
+      charSet.split('').filter(char => !excludeChars.includes(char))
+    )
+
+    return filteredCharSets
+  },
+
+  generateRawPassword(settings, filteredCharacterSets) {
     let rawPassword = []
     const passwordLength = settings.passwordLength
 
-    characterSets.forEach(charSet => {
+    filteredCharacterSets.forEach(charSet => {
       const randomIndex = Math.floor(Math.random() * charSet.length)
       rawPassword.push(charSet[randomIndex])
     })
 
     const remainPasswordLength = passwordLength - rawPassword.length
     for (let i = 0; i < remainPasswordLength; i++) {
-      const randomCharSet = Math.floor(Math.random() * characterSets.length)
-      const selectedCharSet = characterSets[randomCharSet]
+      const randomCharSet = Math.floor(Math.random() * filteredCharacterSets.length)
+      const selectedCharSet = filteredCharacterSets[randomCharSet]
       const randomIndex = Math.floor(Math.random() * selectedCharSet.length)
       rawPassword.push(selectedCharSet[randomIndex])
     }
@@ -71,20 +82,41 @@ const view = {
     switch (settingsStatus) {
       case SETTINGS_STATUS.lengthError:
         generatedPassword.innerHTML = `
-          <p class="mb-0 col-12">You must enter password length.</p>
+          <div class="col-sm-12">
+            <div class="alert alert-danger">
+              Password Length should between number 4 ~ 16.
+            </div>
+          </div>
         `
         return
       case SETTINGS_STATUS.zeroCharacterSetSelected:
         generatedPassword.innerHTML = `
-          <p class="mb-0 col-12">You must select at least one character set.</p>
+          <div class="col-sm-12">
+            <div class="alert alert-danger">
+              You should select at least one character set.
+            </div>
+          </div>
         `
         return
+      case SETTINGS_STATUS.excludeCharactersConflict:
+        generatedPassword.innerHTML = `
+          <div class="col-sm-12">
+            <div class="alert alert-danger">
+              Exclude characters shouldn\'t includes all characters in any of the selected character set.
+            </div>
+          </div>
+        `
     }
   },
 
   renderGeneratedPassword(password) {
     generatedPassword.innerHTML = `
-      <p class="mb-0 col-12">You're password is: <span>${password}</span></p>
+      <div class="col-sm-12">
+        <div class="alert alert-success">
+          <span class="me-2">You're password is:</span>
+          <span class="text-danger">${password}</span>
+        </div>
+      </div>
     `
   }
 }
@@ -92,13 +124,56 @@ const view = {
 const controller = {
   settingsStatus: '',
 
-  verifySettings(settings) {
-    if (!settings.passwordLength) {
+  deployListenerOnGeneratorForm() {
+    generatorForm.addEventListener('submit', (event) => {
+      this.onGeneratorFormSubmit(event)
+    })
+  },
+
+  dispatchRenderAction(settings, characterSets) {
+    switch (this.settingsStatus) {
+      case SETTINGS_STATUS.lengthError:
+      case SETTINGS_STATUS.zeroCharacterSetSelected:
+      case SETTINGS_STATUS.excludeCharactersConflict:
+        view.renderErrorMessage(this.settingsStatus)
+        return
+      case SETTINGS_STATUS.verified:
+        const filteredCharSets = model.getFilteredCharacterSets(settings, characterSets)
+        const rawPassword = model.generateRawPassword(settings, filteredCharSets)
+        const password = utility.shuffle(rawPassword)
+        view.renderGeneratedPassword(password)
+        return
+    }
+  },
+
+  onGeneratorFormSubmit(event) {
+    event.preventDefault()
+
+    const settings = model.generateSettings(event.target)
+    const characterSets = model.getCharacterSets(settings)
+    this.verifySettings(settings, characterSets)
+    this.dispatchRenderAction(settings, characterSets)
+  },
+
+  verifySettings(settings, characterSets) {
+    const excludeChars = settings.excludeChars.split('')
+
+    if (
+      !settings.passwordLength ||
+      settings.passwordLength < 4 ||
+      settings.passwordLength > 16
+    ) {
       this.settingsStatus = SETTINGS_STATUS.lengthError
     } else if (
-      !Object.values(settings).filter(value => typeof value === 'boolean').some(value => value === true)
+      !characterSets.length
     ) {
       this.settingsStatus = SETTINGS_STATUS.zeroCharacterSetSelected
+    } else if (
+      characterSets.some(charSet => 
+        charSet.split('').every(char => excludeChars.includes(char))
+      )
+    ) {
+      this.settingsStatus = SETTINGS_STATUS.excludeCharactersConflict
     } else {
       this.settingsStatus = SETTINGS_STATUS.verified
     }
@@ -118,29 +193,7 @@ const utility = {
   }
 }
 
-generatorForm.addEventListener('submit', function onGeneratorFormSubmit(event) {
-  event.preventDefault()
-
-  const settings = model.generateSettings(event.target)
-  console.log(settings)
-
-  controller.verifySettings(settings)
-
-  console.log(controller.settingsStatus)
-  switch (controller.settingsStatus) {
-    case SETTINGS_STATUS.lengthError:
-    case SETTINGS_STATUS.zeroCharacterSetSelected:
-      view.renderErrorMessage(controller.settingsStatus)
-      return
-    case SETTINGS_STATUS.verified:
-      // view.renderGeneratedPassword('generated password')
-      const rawPassword = model.generateRawPassword(settings, model.getCharacterSets(settings))
-      console.log('rawPassword:', rawPassword)
-      const password = utility.shuffle(rawPassword)
-      console.log(password)
-      view.renderGeneratedPassword(password)
-      return
-  }
-})
+// entry point
+controller.deployListenerOnGeneratorForm()
 
 
