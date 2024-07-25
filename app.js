@@ -10,10 +10,12 @@ const SETTING_STATUS = {
   excludeCharactersConflict: 'excludeCharactersConflict'
 }
 
-const lowercases = 'abcdefghijklmnopqrstuvwxyz'
-const uppercases = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const numbers = '1234567890'
-const symbols = '`~!@#$%^&*()-_=+[{]}|;:\'\",.>/?'
+const characterSets = {
+  lowercases: 'abcdefghijklmnopqrstuvwxyz',
+  uppercases: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  numbers: '1234567890',
+  symbols: '`~!@#$%^&*()-_=+[{]}|;:\'\",.>/?'
+}
 
 function getSettingStatus(settings, characterSets) {
   const excludeChars = settings.excludeCharacters.split('')
@@ -55,23 +57,34 @@ function errorMessage(settingStatus) {
   return errorMessage
 }
 
-function getCharacterSets(settings) {
-  let characterSets = []
+function getCharacterSets(settingsCharacterSets) {
+  let charSets = []
 
-  if (settings.hasLowercase) {
-    characterSets.push(lowercases)
+  if (typeof settingsCharacterSets === 'string') {
+    charSets.push(characterSets[settingsCharacterSets])
   }
-  if (settings.hasUppercase) {
-    characterSets.push(uppercases)
-  }
-  if (settings.hasNumbers) {
-    characterSets.push(numbers)
-  }
-  if (settings.hasSymbols) {
-    characterSets.push(symbols)
+  if (typeof settingsCharacterSets === 'object') {
+    settingsCharacterSets.forEach(charSet => {
+      charSets.push(characterSets[charSet])
+    })
   }
 
-  return characterSets
+  return charSets
+}
+
+function getPreviousSelectedCheckbox(settingsCharacterSets) {
+  const selectedCheckbox = {}
+
+  if (typeof settingsCharacterSets === 'string') {
+    selectedCheckbox[settingsCharacterSets] = true
+  }
+  if (typeof settingsCharacterSets === 'object') {
+    settingsCharacterSets.forEach(charSet => {
+      selectedCheckbox[charSet] = true
+    })
+  }
+
+  return selectedCheckbox
 }
 
 function filteredCharacterSets(settings, characterSets) {
@@ -135,14 +148,15 @@ app.get('/', (req, res) => {
 app.get('/generated', (req, res) => {
   const msg = {}
   const passwordSettings = req.query
-  const charSets = getCharacterSets(passwordSettings)
+  const charSets = getCharacterSets(passwordSettings.characterSets)
+  const previousSelectedCheckbox = getPreviousSelectedCheckbox(passwordSettings.characterSets)
   const settingStatus = getSettingStatus(passwordSettings, charSets)
   const errMsg = errorMessage(settingStatus)
 
   if (errMsg) {
     msg.isErrorMsg = true
     msg.content = errMsg
-    res.render('generated', { passwordSettings, message: msg })
+    res.render('generated', { passwordSettings, message: msg, previousSelectedCheckbox })
   } else {
     const filteredCharSets = filteredCharacterSets(passwordSettings, charSets)
     const rawPasswordArr = generateRawPassword(passwordSettings, filteredCharSets)
@@ -151,7 +165,7 @@ app.get('/generated', (req, res) => {
     msg.isErrorMsg = false
     msg.content = password
 
-    res.render('generated', { passwordSettings, message: msg })
+    res.render('generated', { passwordSettings, message: msg, previousSelectedCheckbox })
   }
 
 })
