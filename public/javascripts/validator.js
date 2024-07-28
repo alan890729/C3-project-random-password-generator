@@ -3,6 +3,12 @@ const passwordLength = document.querySelector('#password-length')
 const characterSetsField = document.querySelector('#character-sets-field')
 const characterSetsCheckboxes = [...document.querySelectorAll('#character-sets-field input')]
 
+if (characterSetsCheckboxes.some(element => element.checked)) {
+  characterSetsCheckboxes.forEach(element => {
+    element.removeAttribute('required')
+  })
+}
+
 form.addEventListener('submit', function onGeneratorFormSubmitted(event) {
   if (!form.checkValidity()) {
     event.preventDefault()

@@ -18,12 +18,13 @@ const characterSets = {
 }
 
 function getSettingStatus(settings, characterSets) {
+  const passwordLength = +settings.passwordLength
   const excludeChars = settings.excludeCharacters.split('')
 
   if (
-    !settings.passwordLength ||
-    +settings.passwordLength < 4 ||
-    +settings.passwordLength > 16
+    !passwordLength ||
+    +passwordLength < 4 ||
+    +passwordLength > 16
   ) {
     return SETTING_STATUS.wrongPasswordLength
   } else if (!characterSets.length) {
@@ -57,34 +58,23 @@ function errorMessage(settingStatus) {
   return errorMessage
 }
 
-function getCharacterSets(settingsCharacterSets) {
+function getCharacterSets(settings) {
   let charSets = []
 
-  if (typeof settingsCharacterSets === 'string') {
-    charSets.push(characterSets[settingsCharacterSets])
+  if (settings.lowercases) {
+    charSets.push(characterSets.lowercases)
   }
-  if (typeof settingsCharacterSets === 'object') {
-    settingsCharacterSets.forEach(charSet => {
-      charSets.push(characterSets[charSet])
-    })
+  if (settings.uppercases) {
+    charSets.push(characterSets.uppercases)
+  }
+  if (settings.numbers) {
+    charSets.push(characterSets.numbers)
+  }
+  if (settings.symbols) {
+    charSets.push(characterSets.symbols)
   }
 
   return charSets
-}
-
-function getPreviousSelectedCheckbox(settingsCharacterSets) {
-  const selectedCheckbox = {}
-
-  if (typeof settingsCharacterSets === 'string') {
-    selectedCheckbox[settingsCharacterSets] = true
-  }
-  if (typeof settingsCharacterSets === 'object') {
-    settingsCharacterSets.forEach(charSet => {
-      selectedCheckbox[charSet] = true
-    })
-  }
-
-  return selectedCheckbox
 }
 
 function filteredCharacterSets(settings, characterSets) {
@@ -141,33 +131,34 @@ app.engine('.hbs', engine({ extname: '.hbs' }))
 app.set('views', './views')
 app.set('view engine', '.hbs')
 
+app.use(express.urlencoded({ extended: true }))
+
 app.get('/', (req, res) => {
   res.render('index')
 })
 
-app.get('/generated', (req, res) => {
+app.post('/', (req, res) => {
+  const previousSettings = req.body
+
   const msg = {}
-  const passwordSettings = req.query
-  const charSets = getCharacterSets(passwordSettings.characterSets)
-  const previousSelectedCheckbox = getPreviousSelectedCheckbox(passwordSettings.characterSets)
-  const settingStatus = getSettingStatus(passwordSettings, charSets)
+  const charSets = getCharacterSets(previousSettings)
+  const settingStatus = getSettingStatus(previousSettings, charSets)
   const errMsg = errorMessage(settingStatus)
 
   if (errMsg) {
     msg.isErrorMsg = true
     msg.content = errMsg
-    res.render('generated', { passwordSettings, message: msg, previousSelectedCheckbox })
+    res.render('index', { previousSettings, message: msg })
   } else {
-    const filteredCharSets = filteredCharacterSets(passwordSettings, charSets)
-    const rawPasswordArr = generateRawPassword(passwordSettings, filteredCharSets)
+    const filteredCharSets = filteredCharacterSets(previousSettings, charSets)
+    const rawPasswordArr = generateRawPassword(previousSettings, filteredCharSets)
     const password = getPassword(rawPasswordArr)
 
     msg.isErrorMsg = false
     msg.content = password
 
-    res.render('generated', { passwordSettings, message: msg, previousSelectedCheckbox })
+    res.render('index', { previousSettings, message: msg })
   }
-
 })
 
 app.listen(port, () => {
