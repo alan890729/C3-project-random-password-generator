@@ -1,5 +1,7 @@
 const generatorForm = document.querySelector('#generator-form')
 const generatedPassword = document.querySelector('#generated-password')
+const characterSetsField = document.querySelector('#character-sets-field')
+const characterSetsCheckboxes = [...document.querySelectorAll('#character-sets-field input')]
 
 const SETTINGS_STATUS = {
   lengthError: 'wrong length or no length entered',
@@ -128,6 +130,18 @@ const controller = {
     generatorForm.addEventListener('submit', (event) => {
       this.onGeneratorFormSubmit(event)
     })
+
+    characterSetsField.addEventListener('change', function onCharacterSetsFieldChanged(event) {
+      if (characterSetsCheckboxes.some(element => element.checked)) {
+        characterSetsCheckboxes.forEach(element => {
+          element.removeAttribute('required')
+        })
+      } else {
+        characterSetsCheckboxes.forEach(element => {
+          element.setAttribute('required', '')
+        })
+      }
+    })
   },
 
   dispatchRenderAction(settings, characterSets) {
@@ -148,6 +162,9 @@ const controller = {
 
   onGeneratorFormSubmit(event) {
     event.preventDefault()
+    console.log(event)
+
+    generatorForm.classList.add('was-validated')
 
     const settings = model.generateSettings(event.target)
     const characterSets = model.getCharacterSets(settings)
