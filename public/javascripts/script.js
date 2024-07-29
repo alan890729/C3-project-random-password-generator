@@ -1,5 +1,7 @@
 const generatorForm = document.querySelector('#generator-form')
 const generatedPassword = document.querySelector('#generated-password')
+const characterSetsField = document.querySelector('#character-sets-field')
+const characterSetsCheckboxes = [...document.querySelectorAll('#character-sets-field input')]
 
 const SETTINGS_STATUS = {
   lengthError: 'wrong length or no length entered',
@@ -47,7 +49,7 @@ const model = {
   getFilteredCharacterSets(settings, characterSets) {
     const excludeChars = settings.excludeChars.split('')
 
-    let filteredCharSets = characterSets.map(charSet => 
+    let filteredCharSets = characterSets.map(charSet =>
       charSet.split('').filter(char => !excludeChars.includes(char))
     )
 
@@ -130,6 +132,20 @@ const controller = {
     })
   },
 
+  deployListenerOnCharacterSetsField() {
+    characterSetsField.addEventListener('change', function onCharacterSetsFieldChanged(event) {
+      if (characterSetsCheckboxes.some(element => element.checked)) {
+        characterSetsCheckboxes.forEach(element => {
+          element.removeAttribute('required')
+        })
+      } else {
+        characterSetsCheckboxes.forEach(element => {
+          element.setAttribute('required', '')
+        })
+      }
+    })
+  },
+
   dispatchRenderAction(settings, characterSets) {
     switch (this.settingsStatus) {
       case SETTINGS_STATUS.lengthError:
@@ -148,6 +164,9 @@ const controller = {
 
   onGeneratorFormSubmit(event) {
     event.preventDefault()
+    console.log(event)
+
+    generatorForm.classList.add('was-validated')
 
     const settings = model.generateSettings(event.target)
     const characterSets = model.getCharacterSets(settings)
@@ -169,7 +188,7 @@ const controller = {
     ) {
       this.settingsStatus = SETTINGS_STATUS.zeroCharacterSetSelected
     } else if (
-      characterSets.some(charSet => 
+      characterSets.some(charSet =>
         charSet.split('').every(char => excludeChars.includes(char))
       )
     ) {
@@ -195,5 +214,6 @@ const utility = {
 
 // entry point
 controller.deployListenerOnGeneratorForm()
+controller.deployListenerOnCharacterSetsField()
 
 
